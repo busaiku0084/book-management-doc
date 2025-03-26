@@ -1,0 +1,315 @@
+openapi: 3.0.0
+info:
+  title: Book Management API
+  version: 1.0.0
+  description: |
+    書籍および著者を管理するAPI。
+    書籍と著者のCRUD操作およびリレーション管理を提供します。
+servers:
+  - url: http://localhost:8080
+    description: Development server
+
+paths:
+  /books:
+    post:
+      summary: 書籍登録
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookRequest"
+      responses:
+        "201":
+          description: 書籍が正常に登録された
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookResponse"
+        "400":
+          description: バリデーションエラー（例 価格が0未満、著者未指定など）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    get:
+      summary: 書籍の一覧取得（オプションで著者IDでフィルタ）
+      parameters:
+        - name: author
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              type: integer
+            description: 著者IDでの絞り込み（複数指定可）
+          style: form
+          explode: true
+      responses:
+        "200":
+          description: 書籍リスト
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BookResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /books/{id}:
+    get:
+      summary: 書籍詳細取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 書籍詳細を取得
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookResponse"
+        "404":
+          description: 書籍が見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      summary: 書籍情報更新
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookRequest"
+      responses:
+        "200":
+          description: 書籍が更新された
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BookResponse"
+        "400":
+          description: 出版済み→未出版への変更は禁止などのバリデーション違反
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 書籍が見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /authors:
+    get:
+      summary: 著者一覧取得
+      responses:
+        "200":
+          description: 著者リストを取得
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AuthorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      summary: 著者登録
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorRequest"
+      responses:
+        "201":
+          description: 著者が登録された
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorResponse"
+        "400":
+          description: バリデーションエラー（名前0文字、100文字超、生年月日が未来など）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /authors/{id}:
+    get:
+      summary: 著者の詳細取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: 著者情報を返す
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorResponse"
+        "404":
+          description: 著者が見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      summary: 著者情報更新
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorRequest"
+      responses:
+        "200":
+          description: 著者情報が更新された
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthorResponse"
+        "400":
+          description: バリデーションエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: 著者が見つかりません
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: サーバーエラー
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    BookRequest:
+      type: object
+      required: [title, price, status, authorIds]
+      properties:
+        title:
+          type: string
+        price:
+          type: integer
+          minimum: 0
+        status:
+          type: string
+          enum: ["unpublished", "published"]
+        authorIds:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+
+    BookResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        price:
+          type: integer
+        status:
+          type: string
+        authors:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuthorResponse"
+
+    AuthorRequest:
+      type: object
+      required: [name, birth_date]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        birth_date:
+          type: string
+          format: date
+          description: ISO-8601形式の日付（例 1990-01-01）
+
+    AuthorResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        birth_date:
+          type: string
+          format: date
+
+    ErrorResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
