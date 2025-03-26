@@ -131,7 +131,10 @@ classDiagram
     AuthorService --> AuthorRepository
     AuthorService --> AuthorRequest
     AuthorService --> AuthorResponse
+    AuthorService --> Author
 
     BookResponse --> AuthorResponse
+    GlobalExceptionHandler --> ValidationErrorResponse
+    GlobalExceptionHandler --> SimpleErrorResponse
     ValidationErrorResponse --> FieldError
 ```
